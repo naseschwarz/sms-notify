@@ -1,7 +1,8 @@
-#/usr/bin/env python
+#/usr/bin/env python2
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 import gobject
+import pynotify
 
 bus_name = "org.freedesktop.ModemManager1"
 sms_base_object = "/org/freedesktop/ModemManager1/SMS/"
@@ -41,10 +42,10 @@ class mm_sms:
 
     def pretty(self):
         if (self.received == True):
-            return ("SMS[%s] from <%s> says: %s" 
+            return ("SMS %s from <%s> says: %s" 
                     % (self.sms_path, self.sender, self.text))
         elif (self.received == False):
-            return ("SMS[%s] to <%s> says: %s" 
+            return ("SMS %s to <%s> says: %s" 
                     % (self.sms_path, self.recipient, self.text))
 
     def delete_from_modem(self):
@@ -68,6 +69,13 @@ def handler(path = None, received = None):
     print("Got signal from %s, received = %d" % (path, received))
     sms = mm_sms(sms_path = path, modem = modem)
     print(sms.pretty())
+    title = "SMS Received from %s" % sms.sender
+    text  = sms.text
+    icon  = "/usr/share/icons/Tango/32x32/status/sunny.png"
+    pynotify.init("Test Application")
+    notification = pynotify.Notification(title, text, icon) 
+    notification.set_urgency(pynotify.URGENCY_NORMAL)
+    notification.show() 
     sms.delete_from_modem()
 
 modem.add_added_callback(handler)
